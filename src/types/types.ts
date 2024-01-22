@@ -103,7 +103,7 @@ export interface GitProject {
     archived: boolean;
     disabled: boolean;
     open_issues_count: number;
-    license: License;
+    license?: License;
     allow_forking: boolean;
     is_template: boolean;
     web_commit_signoff_required: boolean;
@@ -137,10 +137,10 @@ export interface GitProject {
   }
   
   export interface License {
-    key: string;
-    name: string;
-    spdx_id: string;
-    url: string;
-    node_id: string;
+    key?: string;
+    name?: string;
+    spdx_id?: string;
+    url?: string;
+    node_id?: string;
   }
   

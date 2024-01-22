@@ -2,15 +2,16 @@ import { useRef, useState } from "react";
 
 import { VscSearch } from 'react-icons/vsc'
 
-import classes from "./App.module.css";
+//import classes from "./App.module.css";
 
 import { UserProps, GitProject } from "./types/types";
-
-import User from "./Components/User";
+import Repos from "./Components/Repos";
 
 function App() {
 
   const [userData, setUserData] = useState<UserProps>({})
+  const [repoData, setRepoData] = useState<GitProject[]>()
+
   let userName = useRef<string>("")
   let error = useRef<boolean>(true);
   
@@ -20,17 +21,16 @@ function App() {
     {
       const user = await fetch(`https://api.github.com/users/${name}`)
 
-      if(user.status != 404)
+      if(user.ok)
       {
         setUserData(await user.json());
-        console.log(userData)
         error.current = false
+        if(userData.public_repos! > 0)  FetchRepos()
       }
       else
       {
         error.current = true
         setUserData({});
-        console.log(userData)
       }
     }
     else 
@@ -41,6 +41,17 @@ function App() {
     }
   }
 
+  async function FetchRepos(){
+    const repos = await fetch(`${userData.repos_url}`)
+    if(repos.ok)
+    {
+      setRepoData(await repos.json())
+    }
+  }
+
+  console.log(userData)
+  console.log(repoData)
+
   return (
     <>
       <div>
@@ -49,7 +60,27 @@ function App() {
         <button className='buttonIcon' onClick={() => SearchUser(userName.current)}><VscSearch/></button>
       </div>
       <div>
-        {error.current ? (userName.current.length > 0 ? <h3>User {userName.current} don't exist</h3>: <h3>Try to find a user</h3>) : <User {...userData} />}
+        {
+          error.current ? (userName.current.length > 0 ? <h3>User {userName.current} don't exist</h3> : <h3>Try to find a user</h3>) : 
+          <div>
+            <div>
+              <ul>
+                <li><img src={userData.avatar_url}/></li>
+                <li>{userData.name}</li>
+                <li>Location{userData.location}</li>
+                <li>Fallowers{userData.followers}</li>
+                <li>following{userData.following}</li>
+                <li>Repos{userData.public_repos}</li>
+              </ul>
+            </div>
+            <div>
+              {
+                userData.public_repos! <= 0 ? <h3>This user don't have any repository yet</h3> :
+                  repoData?.map((repo) => <Repos {...repo}/>)
+              }
+            </div>
+          </div>
+        }
       </div>
     </>
   ) 
