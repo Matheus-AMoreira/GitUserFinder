@@ -10,47 +10,66 @@ import Repos from "./Components/Repos";
 function App() {
 
   const [userData, setUserData] = useState<UserProps>({})
-  const [repoData, setRepoData] = useState<GitProject[]>()
+  const [repoData, setRepoData] = useState<GitProject[]>([])
+  const [error, setError] = useState<boolean>(true);
 
   let userName = useRef<string>("")
-  let error = useRef<boolean>(true);
   
   async function SearchUser(name: string){
 
     if(name.length > 0)
     {
-      const user = await fetch(`https://api.github.com/users/${name}`)
+      await fetch(`https://api.github.com/users/${name}`)
+        .then(response => {
+          if(response.ok){
+            return response.json()
+          }
+          throw response
+        }).then(data => {
+          if(data.public_repos > 0)
+          {
+            FetchRepos(data.repos_url)
+          }
+          setUserData(data)
+          setError(false)
+        }).catch(err => {
+          console.log(err)
+          setError(true)
+        })
 
-      if(user.ok)
-      {
-        setUserData(await user.json());
-        error.current = false
-        if(userData.public_repos! > 0)  FetchRepos()
-      }
-      else
-      {
-        error.current = true
-        setUserData({});
-      }
+      await fetch(userData?.repos_url!)
+        .then(response => {
+          if(response.ok){
+            return response.json()
+          }
+          throw response
+        }).then(data => {
+          setRepoData(data)
+        }).catch(err => {
+          console.log(err)
+        })
     }
     else 
     {
-      error.current = true
+      setError(true)
       setUserData({})
       alert("Please try to insert a user to be found")
     }
   }
 
-  async function FetchRepos(){
-    const repos = await fetch(`${userData.repos_url}`)
-    if(repos.ok)
-    {
-      setRepoData(await repos.json())
-    }
+  async function FetchRepos(url: string){
+    fetch(url)
+      .then(response =>{
+        if(response.ok){
+          return response.json()
+        }
+        throw response
+      }).then(data => {
+        setRepoData(data)
+      }).catch(err =>{
+        console.log(err)
+      })
   }
-
-  console.log(userData)
-  console.log(repoData)
 
   return (
     <>
@@ -61,7 +80,7 @@ function App() {
       </div>
       <div>
         {
-          error.current ? (userName.current.length > 0 ? <h3>User {userName.current} don't exist</h3> : <h3>Try to find a user</h3>) : 
+          error ? (userName.current.length > 0 ? <h3>User {userName.current} don't exist</h3> : <h3>Try to find a user</h3>) : 
           <div>
             <div>
               <ul>
@@ -75,8 +94,8 @@ function App() {
             </div>
             <div>
               {
-                userData.public_repos! <= 0 ? <h3>This user don't have any repository yet</h3> :
-                  repoData?.map((repo) => <Repos {...repo}/>)
+                repoData.length <= 0 ? <h3>This user don't have any repository yet</h3> :
+                  repoData.map((repo) => <Repos key={repo.id} {...repo}/>)
               }
             </div>
           </div>
