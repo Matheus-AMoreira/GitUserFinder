@@ -1,8 +1,10 @@
 import { useRef, useState } from "react";
 
 import { VscSearch } from 'react-icons/vsc'
+import { RiGitRepositoryLine } from "react-icons/ri";
+import { AiOutlineHome } from "react-icons/ai";
 
-//import classes from "./App.module.css";
+import classes from "./App.module.css";
 
 import { UserProps, GitProject } from "./types/types";
 import Repos from "./Components/Repos";
@@ -36,18 +38,6 @@ function App() {
           console.log(err)
           setError(true)
         })
-
-      await fetch(userData?.repos_url!)
-        .then(response => {
-          if(response.ok){
-            return response.json()
-          }
-          throw response
-        }).then(data => {
-          setRepoData(data)
-        }).catch(err => {
-          console.log(err)
-        })
     }
     else 
     {
@@ -70,38 +60,40 @@ function App() {
         console.log(err)
       })
   }
-
+console.log(userData.location)
   return (
-    <>
-      <div>
-        <h1>GitHub Finder</h1>
-        <input type='text' onInput={(e) => userName.current = e.currentTarget.value} onKeyDown={(e) => {e.key == 'Enter' && SearchUser(userName.current)}}></input>
-        <button className='buttonIcon' onClick={() => SearchUser(userName.current)}><VscSearch/></button>
+    <div className={classes.main}>
+      <div className={classes.search}>
+        <h1>Git User Finder</h1>
+        <div>
+          <input type='text' onInput={(e) => userName.current = e.currentTarget.value} onKeyDown={(e) => {e.key == 'Enter' && SearchUser(userName.current)}}></input>
+          <button className='buttonIcon' onClick={() => SearchUser(userName.current)}><VscSearch/></button>
+        </div>
       </div>
       <div>
         {
-          error ? (userName.current.length > 0 ? <h3>User {userName.current} don't exist</h3> : <h3>Try to find a user</h3>) : 
-          <div>
-            <div>
-              <ul>
-                <li><img src={userData.avatar_url}/></li>
-                <li>{userData.name}</li>
-                <li>Location{userData.location}</li>
-                <li>Fallowers{userData.followers}</li>
-                <li>following{userData.following}</li>
-                <li>Repos{userData.public_repos}</li>
-              </ul>
+          error ? (userName.current.length > 0 ? <p>User {userName.current} don't exist</p> : <p>Try to find a user</p>) : 
+          <div className={classes.user}>
+            <div className={classes.userinfo}>
+                <img src={userData.avatar_url}/>
+                <h1>{userData.name}</h1>
+                <div className={classes.follow}>
+                  <h3>Followers {userData.followers}</h3>
+                  <h3>Following {userData.following}</h3>
+                </div>
+                <h3><AiOutlineHome /> {userData.location != null ? userData.location : "Location not informed"}</h3>
+                <h3><RiGitRepositoryLine /> {userData.public_repos} repositories</h3>
             </div>
-            <div>
+            <div className={classes.repo}>
               {
-                repoData.length <= 0 ? <h3>This user don't have any repository yet</h3> :
+                repoData.length <= 0 ? <p>This user don't have any repository yet</p> :
                   repoData.map((repo) => <Repos key={repo.id} {...repo}/>)
               }
             </div>
           </div>
         }
       </div>
-    </>
+    </div>
   ) 
 }
 
