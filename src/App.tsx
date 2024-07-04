@@ -36,6 +36,7 @@ function App() {
           setError(false)
         }).catch(err => {
           console.log(err)
+          setUserData({})
           setError(true)
         })
     }
@@ -60,7 +61,7 @@ function App() {
         console.log(err)
       })
   }
-console.log(userData.location)
+
   return (
     <div className={classes.main}>
       <div className={classes.search}>
